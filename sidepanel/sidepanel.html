@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Nuntius Ultimate</title>
+  <link rel="stylesheet" href="sidepanel.css">
+</head>
+<body>
+  <header>
+    <div class="title-group">
+      <span class="title">Nuntius</span>
+      <span id="host-badge" class="host-badge" data-host="">—</span>
+    </div>
+    <div class="header-actions">
+      <button id="settings-btn" class="header-btn" title="Settings">⚙</button>
+    </div>
+  </header>
+
+  <section class="block">
+    <div class="thread-header">
+      <span id="thread-label" class="label">Open Slack or Teams…</span>
+      <button id="pull-btn" class="ghost" title="Refresh">↻</button>
+    </div>
+    <div id="thread-view" class="thread empty">Open a Slack or Teams tab to get started.</div>
+  </section>
+
+  <section class="block">
+    <div class="style-row">
+      <label class="field compact">
+        <span>Mood</span>
+        <select id="mood-select"></select>
+      </label>
+      <label class="field compact">
+        <span>Voice</span>
+        <select id="voice-select"></select>
+      </label>
+    </div>
+    <label class="field">
+      <span>Instruction (optional)</span>
+      <textarea id="instruction" rows="2" placeholder="e.g. 'ask for a concrete example', 'push back on X'"></textarea>
+    </label>
+    <button id="draft-btn" class="primary" disabled>Draft reply</button>
+  </section>
+
+  <div id="status" class="status"></div>
+
+  <!-- Settings modal -->
+  <div id="settings-modal" class="modal hidden">
+    <div class="modal-content">
+      <div class="modal-header">
+        <div class="modal-title">Settings</div>
+        <button id="settings-close" class="ghost">✕</button>
+      </div>
+
+      <div class="modal-section">
+        <div class="section-title">You</div>
+        <div class="section-sub">So the model knows who's speaking when your name/alias comes up.</div>
+        <label class="field">
+          <span>Your name or alias</span>
+          <input type="text" id="user-name" placeholder="e.g. Alice Chen, achen  (comma-separate to include both)">
+        </label>
+        <label class="field">
+          <span>About you (optional)</span>
+          <textarea id="user-bio" rows="2" placeholder="Role, team, writing quirks. e.g. 'PM on the platform team. Prefer short, direct replies.'"></textarea>
+        </label>
+      </div>
+
+      <div class="modal-section">
+        <label class="field">
+          <span>Theme</span>
+          <select id="theme-select">
+            <option value="light">Light</option>
+            <option value="dark">Dark</option>
+          </select>
+        </label>
+        <div id="theme-hint" class="section-sub" style="margin-top:-6px; margin-bottom:8px;"></div>
+        <div class="field">
+          <span>Color palette</span>
+          <div id="palette-grid" class="palette-grid"></div>
+        </div>
+        <label class="field">
+          <span>Provider</span>
+          <select id="provider-select">
+            <option value="claude">Claude (CLI via native host)</option>
+            <option value="ollama">Ollama (local)</option>
+          </select>
+        </label>
+
+        <div class="provider-group" data-for="claude">
+          <label class="field">
+            <span>Claude model</span>
+            <select id="model-select">
+              <option value="claude-opus-4-7">Opus 4.7 (most capable)</option>
+              <option value="claude-sonnet-4-6">Sonnet 4.6 (balanced)</option>
+              <option value="claude-haiku-4-5-20251001">Haiku 4.5 (fastest)</option>
+            </select>
+          </label>
+          <label class="field">
+            <span>Effort level</span>
+            <select id="effort-select">
+              <option value="low">Low — fastest, minimal thinking</option>
+              <option value="medium">Medium — balanced (default)</option>
+              <option value="high">High — more thoughtful</option>
+              <option value="xhigh">Extra high</option>
+              <option value="max">Max — slowest, most reasoning</option>
+            </select>
+          </label>
+          <div class="setup-box">
+            <div class="setup-title">One-time setup for Claude CLI</div>
+            <ol class="setup-steps">
+              <li>Make sure <code>claude</code> is on your PATH.</li>
+              <li>Open Terminal, <code>cd</code> into the Nuntius Ultimate folder (where you did <em>Load unpacked</em>).</li>
+              <li>Run this command — it wires Chrome's native-messaging host to this extension ID:
+                <div class="setup-cmd-row">
+                  <code id="claude-install-cmd">./native-host/install.sh …</code>
+                  <button id="copy-install-cmd" class="ghost" type="button" title="Copy command">Copy</button>
+                </div>
+              </li>
+              <li>Reload Nuntius Ultimate in <code>chrome://extensions</code>.</li>
+            </ol>
+            <div id="claude-setup-status" class="section-sub"></div>
+            <button id="test-claude-btn" class="ghost" type="button">Test connection</button>
+          </div>
+        </div>
+
+        <div class="provider-group" data-for="ollama">
+          <label class="field">
+            <span>Ollama host</span>
+            <input type="text" id="ollama-host" placeholder="http://localhost:11434">
+          </label>
+          <label class="field">
+            <span>Ollama model</span>
+            <div style="display:flex; gap:6px;">
+              <select id="ollama-model-select" style="flex:1;"></select>
+              <button id="ollama-refresh-btn" class="ghost" title="Fetch models from Ollama">↻</button>
+            </div>
+          </label>
+          <div class="setup-box">
+            <div class="setup-title">Ollama setup</div>
+            <ol class="setup-steps">
+              <li>Install Ollama: <a href="https://ollama.com/download" target="_blank" rel="noreferrer">ollama.com/download</a>.</li>
+              <li>Pull a model in Terminal:
+                <div class="setup-cmd-row">
+                  <code id="ollama-pull-cmd">ollama pull qwen3:8b</code>
+                  <button id="copy-ollama-cmd" class="ghost" type="button" title="Copy command">Copy</button>
+                </div>
+              </li>
+              <li>Make sure Ollama is running (the menu-bar icon on macOS).</li>
+              <li>Click ↻ above to load the model list.</li>
+            </ol>
+            <div id="ollama-setup-status" class="section-sub"></div>
+            <button id="test-ollama-btn" class="ghost" type="button">Test connection</button>
+          </div>
+          <div id="ollama-hint" class="section-sub" style="margin-top:6px;"></div>
+        </div>
+
+        <label class="field">
+          <span>Messages to load (channels/DMs)</span>
+          <input type="number" id="max-messages" min="1" max="200" step="1" value="20">
+        </label>
+        <div class="section-sub" style="margin-top:-4px;">
+          How many recent messages to scrape. In Slack, threads always load in full.
+        </div>
+      </div>
+
+      <div class="modal-section">
+        <div class="section-title">Voices</div>
+        <div class="section-sub">Paste sample messages (one per line) to teach the model someone's writing style. On Slack, you can also run a search like <code>from:@handle</code> and click ↓ Pull from search.</div>
+        <div id="voices-list"></div>
+        <div class="add-voice-row">
+          <input type="text" id="new-voice-handle" placeholder="new handle (e.g. jdoe)">
+          <button id="add-voice-btn">Add voice</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="sidepanel.js"></script>
+</body>
+</html>

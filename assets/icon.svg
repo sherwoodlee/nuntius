@@ -1,0 +1,61 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0"   stop-color="#1E3A8A"/>
+      <stop offset="0.5" stop-color="#3B82F6"/>
+      <stop offset="1"   stop-color="#22D3EE"/>
+    </linearGradient>
+    <linearGradient id="plane" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#ffffff"/>
+      <stop offset="1" stop-color="#E0F2FE"/>
+    </linearGradient>
+    <linearGradient id="planeFold" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#BAE6FD"/>
+      <stop offset="1" stop-color="#7DD3FC"/>
+    </linearGradient>
+    <linearGradient id="sparkle" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#8B5CF6"/>
+      <stop offset="1" stop-color="#EC4899"/>
+    </linearGradient>
+  </defs>
+
+  <!-- macOS padding: canvas 1024 → visible 824x824 -->
+  <g transform="translate(100 100)">
+    <rect width="824" height="824" rx="184" fill="url(#bg)"/>
+
+    <!-- Subtle corner accents (matching Pontis sibling style) -->
+    <g opacity="0.3">
+      <rect x="78"  y="78"  width="96" height="26" rx="13" fill="#FDE047"/>
+      <rect x="78"  y="78"  width="26" height="96" rx="13" fill="#FDE047"/>
+      <rect x="650" y="78"  width="96" height="26" rx="13" fill="#34D399"/>
+      <rect x="720" y="78"  width="26" height="96" rx="13" fill="#34D399"/>
+      <rect x="78"  y="720" width="96" height="26" rx="13" fill="#F472B6"/>
+      <rect x="78"  y="630" width="26" height="96" rx="13" fill="#F472B6"/>
+      <rect x="650" y="720" width="96" height="26" rx="13" fill="#FCD34D"/>
+      <rect x="720" y="630" width="26" height="96" rx="13" fill="#FCD34D"/>
+    </g>
+
+    <!-- Paper plane - the messenger glyph -->
+    <g transform="translate(412 412) rotate(-18)">
+      <path d="M -220 -40 L 240 -180 L 60 220 L -20 60 Z" fill="url(#plane)"/>
+      <path d="M -220 -40 L -20 60 L 60 220 Z" fill="url(#planeFold)"/>
+      <path d="M -220 -40 L 240 -180" stroke="#7DD3FC" stroke-width="4" stroke-opacity="0.5" fill="none"/>
+    </g>
+
+    <!-- Claude-style sparkle, top-right -->
+    <g transform="translate(600 240) scale(0.6)">
+      <path d="M0 -122
+               C 20 -42, 78 -20, 122 0
+               C 78 20, 20 42, 0 122
+               C -20 42, -78 20, -122 0
+               C -78 -20, -20 -42, 0 -122 Z"
+            fill="url(#sparkle)"/>
+      <path d="M106 -88
+               C 110 -70, 118 -66, 134 -62
+               C 118 -58, 110 -53, 106 -36
+               C 102 -53, 94 -58, 78 -62
+               C 94 -66, 102 -70, 106 -88 Z"
+            fill="#FCD34D"/>
+    </g>
+  </g>
+</svg>

@@ -1,0 +1,78 @@
+{
+  "manifest_version": 3,
+  "name": "Nuntius Ultimate",
+  "version": "1.1.0",
+  "description": "Draft Slack and Microsoft Teams replies with Claude or a local Ollama model, right inside each app.",
+  "icons": {
+    "16": "assets/icon.png",
+    "48": "assets/icon.png",
+    "128": "assets/icon.png"
+  },
+  "action": {
+    "default_title": "Open Nuntius Ultimate",
+    "default_icon": "assets/icon.png"
+  },
+  "side_panel": {
+    "default_path": "sidepanel/sidepanel.html"
+  },
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": ["https://app.slack.com/*"],
+      "js": ["content-main.js"],
+      "world": "MAIN",
+      "run_at": "document_start",
+      "all_frames": true
+    },
+    {
+      "matches": ["https://app.slack.com/*"],
+      "js": ["content-slack.js"],
+      "run_at": "document_start"
+    },
+    {
+      "matches": [
+        "https://teams.microsoft.com/*",
+        "https://teams.cloud.microsoft/*"
+      ],
+      "js": ["content-main.js"],
+      "world": "MAIN",
+      "run_at": "document_start",
+      "all_frames": true
+    },
+    {
+      "matches": [
+        "https://teams.microsoft.com/*",
+        "https://teams.cloud.microsoft/*"
+      ],
+      "js": ["content-teams.js"],
+      "run_at": "document_start"
+    }
+  ],
+  "permissions": [
+    "sidePanel",
+    "storage",
+    "scripting",
+    "activeTab",
+    "tabs",
+    "nativeMessaging",
+    "declarativeNetRequest"
+  ],
+  "host_permissions": [
+    "https://app.slack.com/*",
+    "https://teams.microsoft.com/*",
+    "https://teams.cloud.microsoft/*",
+    "http://localhost/*",
+    "http://127.0.0.1/*"
+  ],
+  "declarative_net_request": {
+    "rule_resources": [
+      {
+        "id": "ollama_strip_origin",
+        "enabled": true,
+        "path": "rules/ollama.json"
+      }
+    ]
+  }
+}

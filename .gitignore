@@ -1,0 +1,4 @@
+_metadata/
+*.zip
+.DS_Store
+native-host/claude-host-wrapper.sh
