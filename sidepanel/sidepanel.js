@@ -6,6 +6,8 @@
 const $ = (id) => document.getElementById(id);
 
 const STORAGE_KEY = 'nuntius_ultimate';
+const HISTORY_KEY = 'nuntius_ultimate_history';
+const HISTORY_MAX = 30;
 
 const SLACK_URL_RE = /^https:\/\/app\.slack\.com\//;
 const TEAMS_URL_RE = /^https:\/\/teams\.(microsoft\.com|cloud\.microsoft|live\.com)\//;
@@ -89,6 +91,11 @@ let currentHost = null;
 let autoRefreshTimer = null;
 const AUTO_REFRESH_MS = 2000;
 
+// Instruction history — shell-style recall with ↑ / ↓.
+let instructionHistory = [];
+let historyIndex = -1;      // -1 = user's current in-progress text (not in history)
+let historyDraft = '';      // what the user had typed when they entered history nav
+
 // ---------- storage helpers ----------
 async function loadSettings() {
   const raw = await chrome.storage.local.get(STORAGE_KEY);
@@ -99,6 +106,23 @@ async function loadSettings() {
 async function saveSettings(patch) {
   settings = { ...settings, ...patch };
   await chrome.storage.local.set({ [STORAGE_KEY]: settings });
+}
+
+async function loadInstructionHistory() {
+  const raw = await chrome.storage.local.get(HISTORY_KEY);
+  const arr = raw[HISTORY_KEY];
+  instructionHistory = Array.isArray(arr) ? arr : [];
+}
+
+async function pushInstruction(text) {
+  const trimmed = (text || '').trim();
+  if (!trimmed) return;
+  if (instructionHistory[instructionHistory.length - 1] === trimmed) return;
+  instructionHistory.push(trimmed);
+  if (instructionHistory.length > HISTORY_MAX) {
+    instructionHistory = instructionHistory.slice(-HISTORY_MAX);
+  }
+  await chrome.storage.local.set({ [HISTORY_KEY]: instructionHistory });
 }
 
 // ---------- host detection + tab plumbing ----------
@@ -181,7 +205,7 @@ function setHost(host) {
 
 // ---------- init ----------
 document.addEventListener('DOMContentLoaded', async () => {
-  await Promise.all([loadSettings(), initWindowBinding()]);
+  await Promise.all([loadSettings(), initWindowBinding(), loadInstructionHistory()]);
   populateMoodSelect();
   populateVoiceSelect();
   $('mood-select').value = settings.lastMood || 'default';
@@ -304,12 +328,58 @@ function wireHandlers() {
   $('new-voice-handle').addEventListener('keydown', (e) => {
     if (e.key === 'Enter') addNewVoice();
   });
-  $('instruction').addEventListener('keydown', (e) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
-      if (!$('draft-btn').disabled) $('draft-btn').click();
-    }
+  $('instruction').addEventListener('keydown', handleInstructionKeydown);
+  $('instruction').addEventListener('input', () => {
+    // Any user typing exits history mode so further ↑ starts fresh from
+    // the user's current text on the next press.
+    historyIndex = -1;
   });
+}
+
+function cursorLineInfo(el) {
+  const pos = el.selectionStart ?? 0;
+  return {
+    onFirstLine: !el.value.substring(0, pos).includes('\n'),
+    onLastLine: !el.value.substring(pos).includes('\n'),
+  };
+}
+
+function handleInstructionKeydown(e) {
+  if (e.key === 'Enter' && !e.shiftKey) {
+    e.preventDefault();
+    if (!$('draft-btn').disabled) $('draft-btn').click();
+    return;
+  }
+  const el = e.target;
+  const inHistory = historyIndex !== -1;
+  if (e.key === 'ArrowUp') {
+    // Don't hijack Up when the user is editing within a multi-line draft.
+    if (!inHistory && !cursorLineInfo(el).onFirstLine) return;
+    if (historyIndex >= instructionHistory.length - 1) return; // already at oldest
+    if (!inHistory) historyDraft = el.value;
+    e.preventDefault();
+    historyIndex++;
+    el.value = instructionHistory[instructionHistory.length - 1 - historyIndex];
+    el.setSelectionRange(0, 0);
+    return;
+  }
+  if (e.key === 'ArrowDown') {
+    if (!inHistory) return;
+    if (!cursorLineInfo(el).onLastLine) return;
+    e.preventDefault();
+    historyIndex--;
+    el.value = historyIndex === -1
+      ? historyDraft
+      : instructionHistory[instructionHistory.length - 1 - historyIndex];
+    el.setSelectionRange(el.value.length, el.value.length);
+    return;
+  }
+  if (e.key === 'Escape' && inHistory) {
+    e.preventDefault();
+    historyIndex = -1;
+    el.value = historyDraft;
+    el.setSelectionRange(el.value.length, el.value.length);
+  }
 }
 
 // ---------- thread refresh ----------
@@ -388,7 +458,10 @@ async function draftReply() {
       setStatus(paste?.error || 'Paste failed.', 'error');
       return;
     }
+    await pushInstruction(instruction);
     $('instruction').value = '';
+    historyIndex = -1;
+    historyDraft = '';
     await saveSettings({ lastMood: mood, lastVoice: voiceId });
     const appLabel = ADAPTERS[currentHost]?.label || 'the app';
     setStatus(`Draft placed in ${appLabel}. Review and press Enter to send.`, 'ok');
