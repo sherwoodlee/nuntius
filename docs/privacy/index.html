@@ -1,0 +1,232 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>nuntius Privacy Policy</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #f6f4ee;
+      --panel: #fffdf8;
+      --text: #1d1f1e;
+      --muted: #5b5f5c;
+      --line: #d8d2c6;
+      --accent: #0f766e;
+      --accent-soft: #d7efe9;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: Georgia, "Times New Roman", serif;
+      background:
+        radial-gradient(circle at top left, rgba(15, 118, 110, 0.08), transparent 32rem),
+        linear-gradient(180deg, #faf7ef 0%, var(--bg) 100%);
+      color: var(--text);
+      line-height: 1.65;
+    }
+
+    main {
+      max-width: 52rem;
+      margin: 0 auto;
+      padding: 3rem 1.25rem 4rem;
+    }
+
+    .card {
+      background: color-mix(in srgb, var(--panel) 94%, white);
+      border: 1px solid var(--line);
+      border-radius: 20px;
+      padding: 2rem;
+      box-shadow: 0 18px 45px rgba(20, 27, 24, 0.06);
+    }
+
+    .eyebrow {
+      display: inline-block;
+      margin-bottom: 0.75rem;
+      padding: 0.2rem 0.65rem;
+      border-radius: 999px;
+      background: var(--accent-soft);
+      color: var(--accent);
+      font: 600 0.82rem/1.2 ui-sans-serif, system-ui, sans-serif;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    h1, h2 {
+      line-height: 1.2;
+      margin: 0 0 0.8rem;
+    }
+
+    h1 {
+      font-size: clamp(2rem, 5vw, 3.1rem);
+    }
+
+    h2 {
+      font-size: 1.25rem;
+      margin-top: 2rem;
+    }
+
+    p, li {
+      font-size: 1.02rem;
+    }
+
+    .meta {
+      color: var(--muted);
+      font-size: 0.95rem;
+      margin: 0.25rem 0 1.5rem;
+    }
+
+    ul {
+      padding-left: 1.25rem;
+    }
+
+    a {
+      color: var(--accent);
+    }
+
+    code {
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size: 0.92em;
+      background: rgba(15, 118, 110, 0.08);
+      padding: 0.1rem 0.3rem;
+      border-radius: 6px;
+    }
+
+    .note {
+      margin-top: 1.5rem;
+      padding: 1rem 1.1rem;
+      border-left: 4px solid var(--accent);
+      background: rgba(15, 118, 110, 0.06);
+    }
+
+    @media (max-width: 640px) {
+      .card {
+        padding: 1.4rem;
+        border-radius: 16px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <article class="card">
+      <div class="eyebrow">Privacy Policy</div>
+      <h1>nuntius Privacy Policy</h1>
+      <p class="meta">Last updated: April 23, 2026</p>
+
+      <p>
+        This Privacy Policy describes how the <strong>nuntius</strong> Chrome extension collects,
+        uses, stores, and shares information when you use the extension with Slack, Microsoft Teams,
+        Claude, and Ollama.
+      </p>
+
+      <h2>What nuntius does</h2>
+      <p>
+        nuntius is a Chrome side-panel extension that helps you draft replies inside Slack and
+        Microsoft Teams. It reads the message context currently visible in the supported web app,
+        sends the prompt to the language model provider you choose, and inserts a draft reply for
+        you to review before sending.
+      </p>
+
+      <h2>Information nuntius collects</h2>
+      <p>nuntius may access the following information only to provide its reply-drafting feature:</p>
+      <ul>
+        <li>Visible Slack or Microsoft Teams conversation content from the currently open chat, thread, channel, or direct message.</li>
+        <li>Message metadata visible in the page, such as display names, timestamps, chat labels, and thread context.</li>
+        <li>Your extension settings, such as provider selection, model choice, tone preferences, theme, and message count settings.</li>
+        <li>Optional profile information you enter, such as your name, bio, and saved voice samples.</li>
+        <li>Optional instruction history stored locally in Chrome so you can reuse previous prompts.</li>
+      </ul>
+
+      <h2>How nuntius uses information</h2>
+      <p>nuntius uses this information only to provide the user-facing features of the extension, including:</p>
+      <ul>
+        <li>Generating draft replies based on the visible conversation context.</li>
+        <li>Matching the tone, voice, and instructions you choose.</li>
+        <li>Saving your settings and optional writing-style inputs locally so the extension works the way you configured it.</li>
+        <li>Supporting optional local integrations with Ollama and the Claude CLI.</li>
+      </ul>
+
+      <h2>Where data is sent</h2>
+      <p>nuntius does not operate a developer-hosted backend service for reply generation.</p>
+      <ul>
+        <li>If you use <strong>Ollama</strong>, prompts are sent only to the local Ollama server you configure, such as <code>http://localhost:11434</code>.</li>
+        <li>If you use <strong>Claude</strong>, prompts are sent through your locally installed Claude CLI using Chrome native messaging. From there, the Claude CLI may send data to Anthropic according to your Claude account and Anthropic's policies.</li>
+        <li>If you do not use a provider, nuntius does not send draft-generation prompts anywhere.</li>
+      </ul>
+
+      <h2>Local storage</h2>
+      <p>
+        nuntius stores settings and optional saved inputs locally in Chrome storage on your device.
+        This can include provider settings, model preferences, theme choice, your name and bio,
+        voice samples, and instruction history.
+      </p>
+
+      <h2>What nuntius does not do</h2>
+      <ul>
+        <li>nuntius does not auto-send messages on your behalf.</li>
+        <li>nuntius does not sell personal information.</li>
+        <li>nuntius does not use conversation data for advertising.</li>
+        <li>nuntius does not transfer conversation data to third parties except as needed for the provider you choose to generate a draft.</li>
+        <li>nuntius does not provide a developer-run remote database for storing your conversations.</li>
+      </ul>
+
+      <h2>Sharing of information</h2>
+      <p>
+        Information is shared only as necessary to provide the draft-generation feature you request:
+      </p>
+      <ul>
+        <li>With your chosen local Ollama server, if you enable Ollama.</li>
+        <li>With the Claude CLI and its upstream service provider, if you enable Claude.</li>
+        <li>As required by law, if legally compelled.</li>
+      </ul>
+
+      <h2>Data retention</h2>
+      <p>
+        Conversation content scraped from Slack or Microsoft Teams is used transiently to create the
+        current draft. Extension settings and optional saved inputs remain in Chrome local storage
+        until you change or remove them, or uninstall the extension.
+      </p>
+
+      <h2>Your choices</h2>
+      <ul>
+        <li>You can choose whether to use Ollama or Claude.</li>
+        <li>You can edit or delete saved settings, voice samples, and profile details from the extension.</li>
+        <li>You can uninstall the extension at any time to remove its local Chrome extension storage.</li>
+      </ul>
+
+      <h2>Security</h2>
+      <p>
+        nuntius is designed to keep settings in local Chrome storage and to use local integrations
+        where possible. No security measure is perfect, and your overall privacy also depends on the
+        security of Slack, Microsoft Teams, Chrome, Ollama, the Claude CLI, and any third-party
+        services you choose to use with the extension.
+      </p>
+
+      <h2>Children's privacy</h2>
+      <p>
+        nuntius is not directed to children and is intended for general workplace productivity use.
+      </p>
+
+      <h2>Changes to this policy</h2>
+      <p>
+        This Privacy Policy may be updated from time to time. The version posted at this URL is the
+        current version.
+      </p>
+
+      <h2>Contact</h2>
+      <p>
+        For questions about this Privacy Policy, contact the developer through the project repository
+        or the contact information listed in the Chrome Web Store listing.
+      </p>
+
+      <div class="note">
+        This page is intended to be hosted publicly, including on GitHub Pages, and used as the
+        privacy policy URL for the Chrome Web Store listing for nuntius.
+      </div>
+    </article>
+  </main>
+</body>
+</html>
