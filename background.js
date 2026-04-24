@@ -80,7 +80,7 @@ async function handleDraft({ prompt, system, provider, host, model, effort }) {
 }
 
 async function ollamaDraft({ prompt, system }, { host, model }) {
-  if (!model) throw new Error('No Ollama model selected. Open Nuntius settings to pick one.');
+  if (!model) throw new Error('No Ollama model selected. Open nuntius settings to pick one.');
   // /api/chat with role-separated messages gives instruction-tuned models
   // noticeably better adherence than /api/generate with a flat string.
   const messages = [];
