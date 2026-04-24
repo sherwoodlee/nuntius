@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
-# Installs the Nuntius Ultimate native-messaging host so the Chrome extension
+# Installs the Nuntius native-messaging host so the Chrome extension
 # can spawn `claude` via stdin/stdout.
 #
 # Usage:
 #   ./install.sh <extension-id>
 #
 # To get the extension ID: load the unpacked extension in chrome://extensions,
-# enable Developer mode, and copy the ID shown on the Nuntius Ultimate card.
+# enable Developer mode, and copy the ID shown on the Nuntius card.
 
 set -euo pipefail
 
@@ -16,7 +16,7 @@ if [ $# -lt 1 ]; then
 fi
 
 EXTENSION_ID="$1"
-HOST_NAME="com.nuntius_ultimate.claude"
+HOST_NAME="com.nuntius.claude"
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 HOST_SCRIPT="$SCRIPT_DIR/claude-host.js"
 NODE_BIN="${NODE_BIN:-$(command -v node)}"
@@ -53,7 +53,7 @@ MANIFEST_PATH="$TARGET_DIR/$HOST_NAME.json"
 cat > "$MANIFEST_PATH" <<EOF
 {
   "name": "$HOST_NAME",
-  "description": "Nuntius Ultimate bridge to the Claude CLI",
+  "description": "Nuntius bridge to the Claude CLI",
   "path": "$WRAPPER",
   "type": "stdio",
   "allowed_origins": [

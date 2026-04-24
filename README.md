@@ -1,4 +1,4 @@
-# Nuntius Ultimate
+# Nuntius
 
 Chrome side-panel extension that drafts both **Slack** and **Microsoft Teams** replies with Claude or a local Ollama model, right inside the web app.
 
@@ -19,7 +19,7 @@ Ollama works out of the box — no CORS shenanigans, no separate installer.
 Native messaging needs a separate setup because Chrome doesn't let extensions write files outside their sandbox. One-time:
 
 1. Make sure the `claude` CLI is on your PATH (`which claude` should return something).
-2. Copy the extension ID from `chrome://extensions` (the 32-char string on the Nuntius Ultimate card — Developer mode must be on).
+2. Copy the extension ID from `chrome://extensions` (the 32-char string on the Nuntius card — Developer mode must be on).
 3. Run:
 
    ```sh
@@ -82,12 +82,5 @@ If you use a non-default host/port, update the rule in `rules/ollama.json`.
 - `content-main.js` — MAIN-world script shared across both hosts. Patches `window.matchMedia` so "Sync with OS" / "Follow system" theme honors Nuntius's toggle.
 - `sidepanel/` — unified UI. Detects current host, adapts labels and affordances, shows host badge in header.
 - `rules/ollama.json` — `declarativeNetRequest` rule that strips `Origin` on Ollama requests.
-- `native-host/` — Node-based native-messaging host for the Claude CLI + installer script. Host ID: `com.nuntius_ultimate.claude`.
+- `native-host/` — Node-based native-messaging host for the Claude CLI + installer script. Host ID: `com.nuntius.claude`.
 
-## Coexistence with old installs
-
-Nuntius Ultimate uses its own:
-- Chrome storage key (`nuntius_ultimate`), so your pontis-chrome and nuntius settings/voices are untouched.
-- Native-host name (`com.nuntius_ultimate.claude`), so the old `com.pontis_chrome.claude` and `com.nuntius.claude` hosts can stay installed side-by-side.
-
-When you're happy with Ultimate, uninstall the two old extensions in `chrome://extensions`. The leftover native-host manifests (in `~/Library/Application Support/Google/Chrome/NativeMessagingHosts/`) are harmless but you can delete `com.pontis_chrome.claude.json` and `com.nuntius.claude.json` to tidy up.

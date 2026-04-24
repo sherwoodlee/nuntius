@@ -5,8 +5,8 @@
 
 const $ = (id) => document.getElementById(id);
 
-const STORAGE_KEY = 'nuntius_ultimate';
-const HISTORY_KEY = 'nuntius_ultimate_history';
+const STORAGE_KEY = 'nuntius';
+const HISTORY_KEY = 'nuntius_history';
 const HISTORY_MAX = 30;
 
 const SLACK_URL_RE = /^https:\/\/app\.slack\.com\//;

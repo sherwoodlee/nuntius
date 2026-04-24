@@ -4,7 +4,7 @@
 // Slack/Teams page context.
 
 const OLLAMA_DEFAULT_HOST = 'http://localhost:11434';
-const CLAUDE_NATIVE_HOST = 'com.nuntius_ultimate.claude';
+const CLAUDE_NATIVE_HOST = 'com.nuntius.claude';
 
 const SLACK_URL_RE = /^https:\/\/app\.slack\.com\//;
 const TEAMS_URL_RE = /^https:\/\/teams\.(microsoft\.com|cloud\.microsoft|live\.com)\//;
@@ -80,7 +80,7 @@ async function handleDraft({ prompt, system, provider, host, model, effort }) {
 }
 
 async function ollamaDraft({ prompt, system }, { host, model }) {
-  if (!model) throw new Error('No Ollama model selected. Open Nuntius Ultimate settings to pick one.');
+  if (!model) throw new Error('No Ollama model selected. Open Nuntius settings to pick one.');
   // /api/chat with role-separated messages gives instruction-tuned models
   // noticeably better adherence than /api/generate with a flat string.
   const messages = [];

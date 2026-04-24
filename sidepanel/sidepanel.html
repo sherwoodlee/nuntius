@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>Nuntius Ultimate</title>
+  <title>Nuntius</title>
   <link rel="stylesheet" href="sidepanel.css">
 </head>
 <body>
@@ -109,14 +109,14 @@
             <div class="setup-title">One-time setup for Claude CLI</div>
             <ol class="setup-steps">
               <li>Make sure <code>claude</code> is on your PATH.</li>
-              <li>Open Terminal, <code>cd</code> into the Nuntius Ultimate folder (where you did <em>Load unpacked</em>).</li>
+              <li>Open Terminal, <code>cd</code> into the Nuntius folder (where you did <em>Load unpacked</em>).</li>
               <li>Run this command — it wires Chrome's native-messaging host to this extension ID:
                 <div class="setup-cmd-row">
                   <code id="claude-install-cmd">./native-host/install.sh …</code>
                   <button id="copy-install-cmd" class="ghost" type="button" title="Copy command">Copy</button>
                 </div>
               </li>
-              <li>Reload Nuntius Ultimate in <code>chrome://extensions</code>.</li>
+              <li>Reload Nuntius in <code>chrome://extensions</code>.</li>
             </ol>
             <div id="claude-setup-status" class="section-sub"></div>
             <button id="test-claude-btn" class="ghost" type="button">Test connection</button>

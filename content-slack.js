@@ -1,6 +1,6 @@
 // Content script: lives inside app.slack.com and handles DOM scraping, composer
 // focus, paste, and voice-sample harvesting on request from the side panel.
-// Also mirrors the user's Nuntius Ultimate theme choice to a DOM attribute so
+// Also mirrors the user's Nuntius theme choice to a DOM attribute so
 // the MAIN-world matchMedia patch can spoof prefers-color-scheme for Slack.
 
 (function () {
@@ -13,12 +13,12 @@
       el.removeAttribute('data-nuntius-theme');
     }
   }
-  chrome.storage.local.get('nuntius_ultimate', ({ nuntius_ultimate: s }) => {
+  chrome.storage.local.get('nuntius', ({ nuntius: s }) => {
     applyThemeAttr(s?.theme);
   });
   chrome.storage.onChanged.addListener((changes, area) => {
-    if (area !== 'local' || !changes.nuntius_ultimate) return;
-    applyThemeAttr(changes.nuntius_ultimate.newValue?.theme);
+    if (area !== 'local' || !changes.nuntius) return;
+    applyThemeAttr(changes.nuntius.newValue?.theme);
   });
 
   // ---------- slackToMarkdown: Slack rich-text → markdown ----------
@@ -291,7 +291,7 @@
       box.dispatchEvent(ev);
       if (ev.defaultPrevented) return { ok: true };
     } catch (e) {
-      console.warn('[nuntius-ultimate] paste event failed:', e);
+      console.warn('[nuntius] paste event failed:', e);
     }
 
     try {

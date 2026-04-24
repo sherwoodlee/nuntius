@@ -1,6 +1,6 @@
 // Content script: lives inside teams.microsoft.com / teams.cloud.microsoft and
 // handles DOM scraping + draft paste on request from the side panel. Also
-// mirrors the user's Nuntius Ultimate theme choice to a DOM attribute so the
+// mirrors the user's Nuntius theme choice to a DOM attribute so the
 // MAIN-world matchMedia patch can spoof prefers-color-scheme for Teams' theme
 // engine.
 
@@ -14,12 +14,12 @@
       el.removeAttribute('data-nuntius-theme');
     }
   }
-  chrome.storage.local.get('nuntius_ultimate', ({ nuntius_ultimate: s }) => {
+  chrome.storage.local.get('nuntius', ({ nuntius: s }) => {
     applyThemeAttr(s?.theme);
   });
   chrome.storage.onChanged.addListener((changes, area) => {
-    if (area !== 'local' || !changes.nuntius_ultimate) return;
-    applyThemeAttr(changes.nuntius_ultimate.newValue?.theme);
+    if (area !== 'local' || !changes.nuntius) return;
+    applyThemeAttr(changes.nuntius.newValue?.theme);
   });
 
   // ---------- teamsToMarkdown: convert a message body element to markdown ----------
@@ -204,7 +204,7 @@
       box.dispatchEvent(ev);
       if (ev.defaultPrevented) return { ok: true };
     } catch (e) {
-      console.warn('[nuntius-ultimate] paste event failed:', e);
+      console.warn('[nuntius] paste event failed:', e);
     }
 
     // Fallback: beforeinput + input events. Works with most contenteditable

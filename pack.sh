@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Produces nuntius-ultimate-<version>.zip with just the files needed to load
+# Produces nuntius-<version>.zip with just the files needed to load
 # the extension. Strips .git, Chrome-generated _metadata, prior zips, and
 # dotfiles.
 set -euo pipefail
@@ -7,7 +7,7 @@ set -euo pipefail
 cd "$(dirname "$0")"
 
 VERSION=$(python3 -c 'import json; print(json.load(open("manifest.json"))["version"])')
-OUT="nuntius-ultimate-${VERSION}.zip"
+OUT="nuntius-${VERSION}.zip"
 
 rm -f "$OUT"
 

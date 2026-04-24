@@ -3,7 +3,7 @@
 //
 // Trick: we override `window.matchMedia` for prefers-color-scheme queries so
 // they honor `<html data-nuntius-theme>`. The isolated content script writes
-// that attribute based on the user's Nuntius Ultimate setting. When the host
+// that attribute based on the user's Nuntius setting. When the host
 // app is set to "Sync with OS" / "Follow system" theme, it will track the
 // attribute as if the OS flipped.
 
