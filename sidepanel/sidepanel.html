@@ -109,10 +109,10 @@
             <div class="setup-title">One-time setup for Claude CLI</div>
             <ol class="setup-steps">
               <li>Make sure <code>claude</code> is on your PATH.</li>
-              <li>Open Terminal, <code>cd</code> into the nuntius folder (where you did <em>Load unpacked</em>).</li>
-              <li>Run this command — it wires Chrome's native-messaging host to this extension ID:
+              <li>Copy the extension ID from <code>chrome://extensions</code> on the nuntius card.</li>
+              <li>Run this public installer command, then paste that extension ID when prompted:
                 <div class="setup-cmd-row">
-                  <code id="claude-install-cmd">./native-host/install.sh …</code>
+                  <code id="claude-install-cmd">bash &lt;(curl -fsSL https://raw.githubusercontent.com/sherwoodlee/nuntius-installer/main/install.sh)</code>
                   <button id="copy-install-cmd" class="ghost" type="button" title="Copy command">Copy</button>
                 </div>
               </li>

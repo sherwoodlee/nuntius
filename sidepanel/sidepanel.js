@@ -706,7 +706,7 @@ function setOllamaSetupStatus(msg, kind = '') {
 }
 
 function wireClaudeSetup() {
-  const cmd = `./native-host/install.sh ${chrome.runtime.id}`;
+  const cmd = 'bash <(curl -fsSL https://raw.githubusercontent.com/sherwoodlee/nuntius-installer/main/install.sh)';
   $('claude-install-cmd').textContent = cmd;
   $('copy-install-cmd').onclick = async () => {
     try {
