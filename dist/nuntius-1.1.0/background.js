@@ -1,22 +1,17 @@
 // Service worker: routes LLM calls and native-messaging requests for the side
 // panel. The side panel calls here via chrome.runtime.sendMessage so that
 // fetch/nativeMessaging happen in the extension's privileged context, not the
-// Slack/Teams/Instagram page context.
+// Slack/Teams page context.
 
 const OLLAMA_DEFAULT_HOST = 'http://localhost:11434';
-const CLI_NATIVE_HOST = 'com.nuntius.claude';
-const CLI_PROVIDERS = new Set(['claude', 'gemini', 'chatgpt']);
+const CLAUDE_NATIVE_HOST = 'com.nuntius.claude';
 
 const SLACK_URL_RE = /^https:\/\/app\.slack\.com\//;
 const TEAMS_URL_RE = /^https:\/\/teams\.(microsoft\.com|cloud\.microsoft|live\.com)\//;
-const INSTAGRAM_URL_RE = /^https:\/\/www\.instagram\.com\/direct\//;
-const FACEBOOK_URL_RE = /^https:\/\/www\.facebook\.com\/messages\//;
 
 function hostForUrl(url) {
   if (SLACK_URL_RE.test(url || '')) return 'slack';
   if (TEAMS_URL_RE.test(url || '')) return 'teams';
-  if (INSTAGRAM_URL_RE.test(url || '')) return 'instagram';
-  if (FACEBOOK_URL_RE.test(url || '')) return 'facebook';
   return null;
 }
 
@@ -52,7 +47,7 @@ chrome.tabs.onUpdated.addListener((_tabId, changeInfo, tab) => {
   if (changeInfo.url || changeInfo.status === 'complete') applyPanelOptions(tab);
 });
 
-// Clicking the toolbar icon on a supported chat tab opens the panel; on other
+// Clicking the toolbar icon on a Slack/Teams tab opens the panel; on other
 // tabs it no-ops (we don't want a panel dangling over unrelated sites).
 chrome.action.onClicked.addListener(async (tab) => {
   if (!tab?.id) return;
@@ -70,8 +65,8 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
     listOllamaModels(msg.host).then(sendResponse).catch((e) => sendResponse({ error: e.message }));
     return true;
   }
-  if (msg?.type === 'provider:ping') {
-    pingCliProvider(msg.provider).then(sendResponse).catch((e) => sendResponse({ ok: false, error: e.message }));
+  if (msg?.type === 'claude:ping') {
+    pingClaudeHost().then(sendResponse);
     return true;
   }
   return false;
@@ -81,10 +76,7 @@ async function handleDraft({ prompt, system, provider, host, model, effort }) {
   if (provider === 'ollama') {
     return ollamaDraft({ prompt, system }, { host: host || OLLAMA_DEFAULT_HOST, model });
   }
-  if (CLI_PROVIDERS.has(provider)) {
-    return cliDraft({ prompt, system }, { provider, model, effort });
-  }
-  throw new Error(`Unknown provider: ${provider}`);
+  return claudeDraft({ prompt, system }, { model, effort });
 }
 
 async function ollamaDraft({ prompt, system }, { host, model }) {
@@ -115,40 +107,47 @@ async function listOllamaModels(host) {
   return { models: (data.models || []).map((m) => ({ name: m.name })) };
 }
 
-// Bridges to local AI CLIs via a Node native-messaging host.
-// Protocol: send { action, provider, prompt, system, model, effort }, receive
-// { text } or { ok, version } / { error }.
-function connectCliHost() {
-  try {
-    return chrome.runtime.connectNative(CLI_NATIVE_HOST);
-  } catch (e) {
-    throw new Error(`Native host unavailable: ${e.message}. Run the installer from nuntius settings.`);
-  }
-}
-
-function pingCliProvider(provider) {
+// Sanity-check whether the native-messaging host is installed. We connect
+// without sending a message and disconnect immediately — if Chrome can find
+// and spawn the host, the manifest is wired up correctly.
+function pingClaudeHost() {
   return new Promise((resolve) => {
-    const port = connectCliHost();
     let settled = false;
-    port.onMessage.addListener((msg) => {
-      settled = true;
-      port.disconnect();
-      if (msg?.error) resolve({ ok: false, error: msg.error });
-      else resolve({ ok: true, version: msg?.version || '' });
-    });
+    let port;
+    try {
+      port = chrome.runtime.connectNative(CLAUDE_NATIVE_HOST);
+    } catch (e) {
+      resolve({ ok: false, error: e.message });
+      return;
+    }
     port.onDisconnect.addListener(() => {
       if (settled) return;
       settled = true;
       const err = chrome.runtime.lastError?.message;
-      resolve({ ok: false, error: err || 'native host disconnected' });
+      resolve({ ok: false, error: err || 'host disconnected before we could verify' });
     });
-    port.postMessage({ action: 'ping', provider });
+    // Hold the connection briefly. If it survives a beat without
+    // onDisconnect firing, the host is installed and running.
+    setTimeout(() => {
+      if (settled) return;
+      settled = true;
+      try { port.disconnect(); } catch {}
+      resolve({ ok: true });
+    }, 400);
   });
 }
 
-function cliDraft({ prompt, system }, { provider, model, effort }) {
+// Bridges to the local `claude` CLI via a Node native-messaging host.
+// Protocol: send { prompt, system, model, effort }, receive { text } or { error }.
+function claudeDraft({ prompt, system }, { model, effort }) {
   return new Promise((resolve, reject) => {
-    const port = connectCliHost();
+    let port;
+    try {
+      port = chrome.runtime.connectNative(CLAUDE_NATIVE_HOST);
+    } catch (e) {
+      reject(new Error(`Native host unavailable: ${e.message}. Run native-host/install.sh.`));
+      return;
+    }
     port.onMessage.addListener((msg) => {
       port.disconnect();
       if (msg?.error) reject(new Error(msg.error));
@@ -158,6 +157,6 @@ function cliDraft({ prompt, system }, { provider, model, effort }) {
       const err = chrome.runtime.lastError?.message;
       if (err) reject(new Error(`Native host disconnected: ${err}`));
     });
-    port.postMessage({ action: 'draft', provider, prompt, system, model, effort });
+    port.postMessage({ prompt, system, model, effort });
   });
 }

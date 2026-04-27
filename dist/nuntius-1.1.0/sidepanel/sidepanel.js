@@ -1,4 +1,4 @@
-// Side panel: the UI shown alongside Slack, Teams, or Instagram. Detects which host the
+// Side panel: the UI shown alongside Slack or Teams. Detects which host the
 // companion tab is on, adapts the UI, and talks to the right content script
 // (via chrome.tabs.sendMessage) for DOM work. LLM calls go to background.js
 // (via chrome.runtime.sendMessage).
@@ -11,8 +11,6 @@ const HISTORY_MAX = 30;
 
 const SLACK_URL_RE = /^https:\/\/app\.slack\.com\//;
 const TEAMS_URL_RE = /^https:\/\/teams\.(microsoft\.com|cloud\.microsoft|live\.com)\//;
-const INSTAGRAM_URL_RE = /^https:\/\/www\.instagram\.com\/direct\//;
-const FACEBOOK_URL_RE = /^https:\/\/www\.facebook\.com\/messages\//;
 
 const ADAPTERS = {
   slack: {
@@ -34,26 +32,6 @@ const ADAPTERS = {
     supportsThreadHighlight: false,
     needsReloadOnTheme: false,
     themeHint: 'To make Teams match, set Teams → Settings → Appearance → Follow system.',
-  },
-  instagram: {
-    label: 'Instagram',
-    urlPatterns: ['https://www.instagram.com/direct/*'],
-    idleLabel: 'Open an Instagram DM…',
-    emptyHint: 'Open an Instagram DM thread, then click refresh.',
-    supportsVoicePull: false,
-    supportsThreadHighlight: false,
-    needsReloadOnTheme: false,
-    themeHint: '',
-  },
-  facebook: {
-    label: 'Messenger',
-    urlPatterns: ['https://www.facebook.com/messages/*'],
-    idleLabel: 'Open a Messenger thread…',
-    emptyHint: 'Open a Messenger conversation, then click refresh.',
-    supportsVoicePull: false,
-    supportsThreadHighlight: false,
-    needsReloadOnTheme: false,
-    themeHint: '',
   },
 };
 
@@ -95,8 +73,6 @@ const DEFAULTS = {
   provider: 'claude',
   model: 'claude-sonnet-4-6',
   effort: 'medium',
-  geminiModel: '',
-  chatgptModel: '',
   ollamaHost: 'http://localhost:11434',
   ollamaModel: '',
   theme: 'light',
@@ -151,9 +127,8 @@ async function pushInstruction(text) {
 
 // ---------- host detection + tab plumbing ----------
 // The sidepanel is docked in a specific browser window. Bind to that window
-// on load so our tab queries stay anchored there — otherwise a second Slack,
-// Teams, or Instagram tab in any window can hijack the panel via
-// "most-recently-active" tie-breaking.
+// on load so our tab queries stay anchored there — otherwise a second Slack
+// or Teams tab in any window can hijack the panel via "most-recently-active"
 // tie-breaking.
 let boundWindowId = null;
 
@@ -169,8 +144,6 @@ async function initWindowBinding() {
 function hostForUrl(url) {
   if (SLACK_URL_RE.test(url || '')) return 'slack';
   if (TEAMS_URL_RE.test(url || '')) return 'teams';
-  if (INSTAGRAM_URL_RE.test(url || '')) return 'instagram';
-  if (FACEBOOK_URL_RE.test(url || '')) return 'facebook';
   return null;
 }
 
@@ -184,12 +157,7 @@ async function getCompanionTab() {
   }
   // Fallback for edge cases (window id unavailable, or active tab isn't a
   // Slack/Teams tab — e.g. panel still showing while user is on about:blank).
-  const patterns = [
-    ...ADAPTERS.slack.urlPatterns,
-    ...ADAPTERS.teams.urlPatterns,
-    ...ADAPTERS.instagram.urlPatterns,
-    ...ADAPTERS.facebook.urlPatterns,
-  ];
+  const patterns = [...ADAPTERS.slack.urlPatterns, ...ADAPTERS.teams.urlPatterns];
   const tabs = await chrome.tabs.query({ url: patterns, windowId: boundWindowId ?? undefined });
   return tabs.sort((a, b) => (b.lastAccessed || 0) - (a.lastAccessed || 0))[0] || null;
 }
@@ -198,7 +166,7 @@ async function contentSend(msg) {
   const tab = await getCompanionTab();
   if (!tab) {
     setHost(null);
-    return { error: 'No Slack, Teams, Instagram, or Messenger tab open. Open one first.' };
+    return { error: 'No Slack or Teams tab open. Open one first.' };
   }
   const host = hostForUrl(tab.url);
   if (host !== currentHost) setHost(host);
@@ -226,10 +194,10 @@ function setHost(host) {
   }
   const view = $('thread-view');
   if (view.classList.contains('empty')) {
-    view.textContent = adapter?.emptyHint || 'Open Slack, Teams, Instagram, or Messenger to get started.';
+    view.textContent = adapter?.emptyHint || 'Open a Slack or Teams tab to get started.';
   }
   if (!currentThread) {
-    $('thread-label').textContent = adapter?.idleLabel || 'Open Slack, Teams, Instagram, or Messenger…';
+    $('thread-label').textContent = adapter?.idleLabel || 'Open Slack or Teams…';
   }
   // Re-render voices because Pull-from-search visibility depends on host.
   if (!$('settings-modal').classList.contains('hidden')) renderVoicesList();
@@ -254,41 +222,19 @@ document.addEventListener('DOMContentLoaded', async () => {
 // Settings open to the right setup box with an explanatory message.
 let autoOpenedThisSession = false;
 
-function providerDisplayName(provider) {
-  if (provider === 'claude') return 'Claude';
-  if (provider === 'gemini') return 'Gemini CLI';
-  if (provider === 'chatgpt') return 'ChatGPT / Codex CLI';
-  if (provider === 'ollama') return 'Ollama';
-  return provider || 'Provider';
-}
-
-async function checkCliProviderReadiness(provider) {
-  try {
-    const result = await chrome.runtime.sendMessage({ type: 'provider:ping', provider });
-    if (result?.ok) return { ok: true, focus: provider };
-    return {
-      ok: false,
-      focus: provider,
-      message: `${providerDisplayName(provider)} isn't connected: ${result?.error || 'CLI unavailable'}. Finish the setup steps above, then click Test connection.`,
-    };
-  } catch (e) {
-    return {
-      ok: false,
-      focus: provider,
-      message: `${providerDisplayName(provider)} check failed: ${e.message}`,
-    };
-  }
-}
-
 async function checkProviderReadiness() {
   if (settings.provider === 'claude') {
-    return checkCliProviderReadiness('claude');
-  }
-  if (settings.provider === 'gemini') {
-    return checkCliProviderReadiness('gemini');
-  }
-  if (settings.provider === 'chatgpt') {
-    return checkCliProviderReadiness('chatgpt');
+    try {
+      const result = await chrome.runtime.sendMessage({ type: 'claude:ping' });
+      if (result?.ok) return { ok: true, focus: 'claude' };
+      return {
+        ok: false,
+        focus: 'claude',
+        message: `Claude isn't connected: ${result?.error || 'native host unavailable'}. Run the command above, then click Test connection.`,
+      };
+    } catch (e) {
+      return { ok: false, focus: 'claude', message: `Claude check failed: ${e.message}` };
+    }
   }
   if (settings.provider === 'ollama') {
     try {
@@ -328,12 +274,6 @@ function surfaceReadiness(check) {
   if (check.focus === 'claude') {
     setClaudeSetupStatus(check.message, 'error');
     $('test-claude-btn')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-  } else if (check.focus === 'gemini') {
-    setGeminiSetupStatus(check.message, 'error');
-    $('test-gemini-btn')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-  } else if (check.focus === 'chatgpt') {
-    setChatgptSetupStatus(check.message, 'error');
-    $('test-chatgpt-btn')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
   } else if (check.focus === 'ollama') {
     setOllamaSetupStatus(check.message, 'error');
     $('test-ollama-btn')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -491,11 +431,6 @@ async function draftReply() {
   const me = name ? { name, bio } : null;
 
   const { system, user } = buildPrompt(currentThread, instruction, { mood, voice, me, host: currentHost });
-  const selectedModel =
-    settings.provider === 'ollama' ? settings.ollamaModel
-    : settings.provider === 'gemini' ? (settings.geminiModel || '').trim()
-    : settings.provider === 'chatgpt' ? (settings.chatgptModel || '').trim()
-    : settings.model;
 
   try {
     const reply = await chrome.runtime.sendMessage({
@@ -505,7 +440,7 @@ async function draftReply() {
         prompt: user,
         provider: settings.provider,
         host: settings.ollamaHost,
-        model: selectedModel,
+        model: settings.provider === 'ollama' ? settings.ollamaModel : settings.model,
         effort: settings.provider === 'claude' ? settings.effort : undefined,
       },
     });
@@ -539,11 +474,7 @@ async function draftReply() {
 }
 
 function buildSystemPrompt(me, host) {
-  const appName =
-    host === 'teams' ? 'Microsoft Teams'
-    : host === 'instagram' ? 'Instagram Direct'
-    : host === 'facebook' ? 'Facebook Messenger'
-    : 'Slack';
+  const appName = host === 'teams' ? 'Microsoft Teams' : 'Slack';
   const lines = [
     `You draft short replies for ${appName}.`,
     'You will be given a conversation where the user (posting as "Me") is preparing their next message. Write the reply the user should send.',
@@ -704,18 +635,6 @@ async function openSettings() {
 
   wireClaudeSetup();
 
-  $('gemini-model').value = settings.geminiModel || '';
-  $('gemini-model').onchange = async () => {
-    await saveSettings({ geminiModel: $('gemini-model').value.trim() });
-  };
-  wireGeminiSetup();
-
-  $('chatgpt-model').value = settings.chatgptModel || '';
-  $('chatgpt-model').onchange = async () => {
-    await saveSettings({ chatgptModel: $('chatgpt-model').value.trim() });
-  };
-  wireChatgptSetup();
-
   $('ollama-host').value = settings.ollamaHost;
   $('ollama-host').onchange = async () => {
     await saveSettings({ ollamaHost: $('ollama-host').value.trim() || DEFAULTS.ollamaHost });
@@ -798,11 +717,11 @@ function wireClaudeSetup() {
     }
   };
   $('test-claude-btn').onclick = async () => {
-    setClaudeSetupStatus('Testing Claude CLI…');
+    setClaudeSetupStatus('Testing native host…');
     try {
-      const result = await chrome.runtime.sendMessage({ type: 'provider:ping', provider: 'claude' });
+      const result = await chrome.runtime.sendMessage({ type: 'claude:ping' });
       if (result?.ok) {
-        setClaudeSetupStatus(`Claude CLI responded${result.version ? ` (${result.version})` : ''}.`, 'ok');
+        setClaudeSetupStatus("Native host responded. You're good.", 'ok');
       } else {
         setClaudeSetupStatus(`Not connected: ${result?.error || 'unknown error'}`, 'error');
       }
@@ -815,114 +734,6 @@ function wireClaudeSetup() {
 
 function setClaudeSetupStatus(msg, kind = '') {
   const el = $('claude-setup-status');
-  if (!el) return;
-  el.textContent = msg;
-  el.className = `section-sub ${kind}`;
-}
-
-function wireGeminiSetup() {
-  const hostInstallCmd = 'bash <(curl -fsSL https://raw.githubusercontent.com/sherwoodlee/nuntius-installer/main/install.sh)';
-  const installCmd = 'npm install -g @google/gemini-cli';
-  const loginCmd = 'gemini';
-  $('gemini-host-install-cmd').textContent = hostInstallCmd;
-  $('gemini-install-cmd').textContent = installCmd;
-  $('gemini-login-cmd').textContent = loginCmd;
-  $('copy-gemini-host-install-cmd').onclick = async () => {
-    try {
-      await navigator.clipboard.writeText(hostInstallCmd);
-      setGeminiSetupStatus('Native host install command copied to clipboard.', 'ok');
-    } catch {
-      setGeminiSetupStatus("Couldn't copy — select the text manually.", 'error');
-    }
-  };
-  $('copy-gemini-install-cmd').onclick = async () => {
-    try {
-      await navigator.clipboard.writeText(installCmd);
-      setGeminiSetupStatus('Install command copied to clipboard.', 'ok');
-    } catch {
-      setGeminiSetupStatus("Couldn't copy — select the text manually.", 'error');
-    }
-  };
-  $('copy-gemini-login-cmd').onclick = async () => {
-    try {
-      await navigator.clipboard.writeText(loginCmd);
-      setGeminiSetupStatus('Login command copied to clipboard.', 'ok');
-    } catch {
-      setGeminiSetupStatus("Couldn't copy — select the text manually.", 'error');
-    }
-  };
-  $('test-gemini-btn').onclick = async () => {
-    setGeminiSetupStatus('Testing Gemini CLI…');
-    try {
-      const result = await chrome.runtime.sendMessage({ type: 'provider:ping', provider: 'gemini' });
-      if (result?.ok) {
-        setGeminiSetupStatus(`Gemini CLI responded${result.version ? ` (${result.version})` : ''}.`, 'ok');
-      } else {
-        setGeminiSetupStatus(`Not connected: ${result?.error || 'unknown error'}`, 'error');
-      }
-    } catch (e) {
-      setGeminiSetupStatus(`Test failed: ${e.message}`, 'error');
-    }
-  };
-  setGeminiSetupStatus('');
-}
-
-function setGeminiSetupStatus(msg, kind = '') {
-  const el = $('gemini-setup-status');
-  if (!el) return;
-  el.textContent = msg;
-  el.className = `section-sub ${kind}`;
-}
-
-function wireChatgptSetup() {
-  const hostInstallCmd = 'bash <(curl -fsSL https://raw.githubusercontent.com/sherwoodlee/nuntius-installer/main/install.sh)';
-  const installCmd = 'npm install -g @openai/codex';
-  const loginCmd = 'codex --login';
-  $('chatgpt-host-install-cmd').textContent = hostInstallCmd;
-  $('chatgpt-install-cmd').textContent = installCmd;
-  $('chatgpt-login-cmd').textContent = loginCmd;
-  $('copy-chatgpt-host-install-cmd').onclick = async () => {
-    try {
-      await navigator.clipboard.writeText(hostInstallCmd);
-      setChatgptSetupStatus('Native host install command copied to clipboard.', 'ok');
-    } catch {
-      setChatgptSetupStatus("Couldn't copy — select the text manually.", 'error');
-    }
-  };
-  $('copy-chatgpt-install-cmd').onclick = async () => {
-    try {
-      await navigator.clipboard.writeText(installCmd);
-      setChatgptSetupStatus('Install command copied to clipboard.', 'ok');
-    } catch {
-      setChatgptSetupStatus("Couldn't copy — select the text manually.", 'error');
-    }
-  };
-  $('copy-chatgpt-login-cmd').onclick = async () => {
-    try {
-      await navigator.clipboard.writeText(loginCmd);
-      setChatgptSetupStatus('Login command copied to clipboard.', 'ok');
-    } catch {
-      setChatgptSetupStatus("Couldn't copy — select the text manually.", 'error');
-    }
-  };
-  $('test-chatgpt-btn').onclick = async () => {
-    setChatgptSetupStatus('Testing ChatGPT / Codex CLI…');
-    try {
-      const result = await chrome.runtime.sendMessage({ type: 'provider:ping', provider: 'chatgpt' });
-      if (result?.ok) {
-        setChatgptSetupStatus(`ChatGPT / Codex CLI responded${result.version ? ` (${result.version})` : ''}.`, 'ok');
-      } else {
-        setChatgptSetupStatus(`Not connected: ${result?.error || 'unknown error'}`, 'error');
-      }
-    } catch (e) {
-      setChatgptSetupStatus(`Test failed: ${e.message}`, 'error');
-    }
-  };
-  setChatgptSetupStatus('');
-}
-
-function setChatgptSetupStatus(msg, kind = '') {
-  const el = $('chatgpt-setup-status');
   if (!el) return;
   el.textContent = msg;
   el.className = `section-sub ${kind}`;

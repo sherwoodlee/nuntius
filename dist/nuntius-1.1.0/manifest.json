@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
   "name": "nuntius",
-  "version": "1.1.1",
-  "description": "Draft Slack, Microsoft Teams, Instagram, and Facebook Messenger replies with Claude or a local Ollama model, right inside each app.",
+  "version": "1.1.0",
+  "description": "Draft Slack and Microsoft Teams replies with Claude or a local Ollama model, right inside each app.",
   "icons": {
     "16": "assets/icon.png",
     "48": "assets/icon.png",
@@ -48,20 +48,6 @@
       ],
       "js": ["content-teams.js"],
       "run_at": "document_start"
-    },
-    {
-      "matches": [
-        "https://www.instagram.com/direct/*"
-      ],
-      "js": ["content-instagram.js"],
-      "run_at": "document_start"
-    },
-    {
-      "matches": [
-        "https://www.facebook.com/messages/*"
-      ],
-      "js": ["content-facebook.js"],
-      "run_at": "document_start"
     }
   ],
   "permissions": [
@@ -77,8 +63,6 @@
     "https://app.slack.com/*",
     "https://teams.microsoft.com/*",
     "https://teams.cloud.microsoft/*",
-    "https://www.instagram.com/direct/*",
-    "https://www.facebook.com/messages/*",
     "http://localhost/*",
     "http://127.0.0.1/*"
   ],
