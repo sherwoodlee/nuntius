@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
   "name": "nuntius",
-  "version": "1.2.0",
-  "description": "Draft replies in Slack, Teams, Instagram DMs, and Messenger with Claude, Gemini CLI, Codex CLI, or Ollama.",
+  "version": "1.1.1",
+  "description": "Draft Slack, Microsoft Teams, Instagram, and Facebook Messenger replies with Claude or a local Ollama model, right inside each app.",
   "icons": {
     "16": "assets/icon.png",
     "48": "assets/icon.png",

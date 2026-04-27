@@ -36,12 +36,8 @@
       </label>
     </div>
     <label class="field">
-      <span>What I want to say (optional)</span>
-      <textarea id="reply-content" rows="2" placeholder="Type the reply idea or template you want nuntius to polish"></textarea>
-    </label>
-    <label class="field">
-      <span>AI guidance (optional)</span>
-      <textarea id="instruction" rows="2" placeholder="Tell the AI how to shape it, e.g. shorter, warmer, ask a follow-up"></textarea>
+      <span>Instruction (optional)</span>
+      <textarea id="instruction" rows="2" placeholder="e.g. 'ask for a concrete example', 'push back on X'"></textarea>
     </label>
     <button id="draft-btn" class="primary" disabled>Draft reply</button>
   </section>
@@ -86,8 +82,6 @@
           <span>Provider</span>
           <select id="provider-select">
             <option value="claude">Claude (CLI via native host)</option>
-            <option value="gemini">Gemini CLI (via native host)</option>
-            <option value="chatgpt">ChatGPT / Codex CLI (via native host)</option>
             <option value="ollama">Ollama (local)</option>
           </select>
         </label>
@@ -126,72 +120,6 @@
             </ol>
             <div id="claude-setup-status" class="section-sub"></div>
             <button id="test-claude-btn" class="ghost" type="button">Test connection</button>
-          </div>
-        </div>
-
-        <div class="provider-group" data-for="gemini">
-          <label class="field">
-            <span>Gemini model (optional)</span>
-            <input type="text" id="gemini-model" placeholder="Leave blank to use Gemini CLI default">
-          </label>
-          <div class="setup-box">
-            <div class="setup-title">One-time setup for Gemini CLI</div>
-            <ol class="setup-steps">
-              <li>If you have not already done it for Claude, first install the shared nuntius native host:
-                <div class="setup-cmd-row">
-                  <code id="gemini-host-install-cmd">bash &lt;(curl -fsSL https://raw.githubusercontent.com/sherwoodlee/nuntius-installer/main/install.sh)</code>
-                  <button id="copy-gemini-host-install-cmd" class="ghost" type="button" title="Copy command">Copy</button>
-                </div>
-              </li>
-              <li>Install Gemini CLI:
-                <div class="setup-cmd-row">
-                  <code id="gemini-install-cmd">npm install -g @google/gemini-cli</code>
-                  <button id="copy-gemini-install-cmd" class="ghost" type="button" title="Copy command">Copy</button>
-                </div>
-              </li>
-              <li>Run Gemini CLI once and complete auth in the browser, or set <code>GEMINI_API_KEY</code> first:
-                <div class="setup-cmd-row">
-                  <code id="gemini-login-cmd">gemini</code>
-                  <button id="copy-gemini-login-cmd" class="ghost" type="button" title="Copy command">Copy</button>
-                </div>
-              </li>
-              <li>Reload nuntius in <code>chrome://extensions</code> if you just installed the native host.</li>
-            </ol>
-            <div id="gemini-setup-status" class="section-sub"></div>
-            <button id="test-gemini-btn" class="ghost" type="button">Test connection</button>
-          </div>
-        </div>
-
-        <div class="provider-group" data-for="chatgpt">
-          <label class="field">
-            <span>ChatGPT model (optional)</span>
-            <input type="text" id="chatgpt-model" placeholder="Leave blank to use Codex CLI default">
-          </label>
-          <div class="setup-box">
-            <div class="setup-title">One-time setup for ChatGPT / Codex CLI</div>
-            <ol class="setup-steps">
-              <li>If you have not already done it for Claude, first install the shared nuntius native host:
-                <div class="setup-cmd-row">
-                  <code id="chatgpt-host-install-cmd">bash &lt;(curl -fsSL https://raw.githubusercontent.com/sherwoodlee/nuntius-installer/main/install.sh)</code>
-                  <button id="copy-chatgpt-host-install-cmd" class="ghost" type="button" title="Copy command">Copy</button>
-                </div>
-              </li>
-              <li>Install Codex CLI:
-                <div class="setup-cmd-row">
-                  <code id="chatgpt-install-cmd">npm install -g @openai/codex</code>
-                  <button id="copy-chatgpt-install-cmd" class="ghost" type="button" title="Copy command">Copy</button>
-                </div>
-              </li>
-              <li>Sign in with ChatGPT, or configure <code>OPENAI_API_KEY</code>:
-                <div class="setup-cmd-row">
-                  <code id="chatgpt-login-cmd">codex --login</code>
-                  <button id="copy-chatgpt-login-cmd" class="ghost" type="button" title="Copy command">Copy</button>
-                </div>
-              </li>
-              <li>Reload nuntius in <code>chrome://extensions</code> if you just installed the native host.</li>
-            </ol>
-            <div id="chatgpt-setup-status" class="section-sub"></div>
-            <button id="test-chatgpt-btn" class="ghost" type="button">Test connection</button>
           </div>
         </div>
 

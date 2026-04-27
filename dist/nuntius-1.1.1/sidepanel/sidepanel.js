@@ -388,20 +388,12 @@ function wireHandlers() {
   $('new-voice-handle').addEventListener('keydown', (e) => {
     if (e.key === 'Enter') addNewVoice();
   });
-  $('reply-content').addEventListener('keydown', handleDraftBoxKeydown);
   $('instruction').addEventListener('keydown', handleInstructionKeydown);
   $('instruction').addEventListener('input', () => {
     // Any user typing exits history mode so further ↑ starts fresh from
     // the user's current text on the next press.
     historyIndex = -1;
   });
-}
-
-function handleDraftBoxKeydown(e) {
-  if (e.key === 'Enter' && !e.shiftKey) {
-    e.preventDefault();
-    if (!$('draft-btn').disabled) $('draft-btn').click();
-  }
 }
 
 function cursorLineInfo(el) {
@@ -470,7 +462,6 @@ async function refreshThread(silent) {
     currentThread.mode !== result.mode ||
     currentThread.id !== result.id;
   if (switched) $('instruction').value = '';
-  if (switched) $('reply-content').value = '';
 
   currentThread = result;
   renderConversation(result);
@@ -494,13 +485,12 @@ async function draftReply() {
   const mood = $('mood-select').value;
   const voiceId = $('voice-select').value || '';
   const voice = voiceId ? (settings.voices || []).find((v) => v.id === voiceId) : null;
-  const replyContent = $('reply-content').value.trim();
-  const guidance = $('instruction').value.trim();
+  const instruction = $('instruction').value.trim();
   const name = (settings.userName || '').trim();
   const bio = (settings.userBio || '').trim();
   const me = name ? { name, bio } : null;
 
-  const { system, user } = buildPrompt(currentThread, { replyContent, guidance }, { mood, voice, me, host: currentHost });
+  const { system, user } = buildPrompt(currentThread, instruction, { mood, voice, me, host: currentHost });
   const selectedModel =
     settings.provider === 'ollama' ? settings.ollamaModel
     : settings.provider === 'gemini' ? (settings.geminiModel || '').trim()
@@ -533,8 +523,7 @@ async function draftReply() {
       setStatus(paste?.error || 'Paste failed.', 'error');
       return;
     }
-    await pushInstruction(guidance);
-    $('reply-content').value = '';
+    await pushInstruction(instruction);
     $('instruction').value = '';
     historyIndex = -1;
     historyDraft = '';
@@ -557,7 +546,7 @@ function buildSystemPrompt(me, host) {
     : 'Slack';
   const lines = [
     `You draft short replies for ${appName}.`,
-    'You will be given a conversation where each message has an explicit speaker: "me", "other", or "unknown". The user is speaker="me" and is preparing their next message. Write the reply the user should send.',
+    'You will be given a conversation where the user (posting as "Me") is preparing their next message. Write the reply the user should send.',
   ];
   if (me?.name) {
     const bio = me.bio ? ` ${me.bio}` : '';
@@ -580,16 +569,12 @@ function buildSystemPrompt(me, host) {
   lines.push(
     '',
     'Rules:',
-    '- Treat only messages marked speaker="me" as words the user already sent. Messages from speaker="other" are context to respond to, never the user speaking.',
-    '- If the latest message is from speaker="me", draft a natural follow-up only if the user provided reply content or AI guidance asking for one; otherwise respond to the latest unanswered speaker="other" message.',
     '- Write in first person from "Me"\'s perspective — never narrate about Me in third person.',
     '- Output ONLY the reply text. No preamble, no quotes, no markdown headers, no sign-off unless asked.',
-    '- Keep it concise — one short paragraph unless the AI guidance says otherwise.',
+    '- Keep it concise — one short paragraph unless the instruction says otherwise.',
     '- Reply in the same language as the most recent messages in the conversation.',
     '- If a specific fact (name, number, date, link) is not in the conversation, use a [bracketed placeholder] rather than inventing it.',
-    '- <reply-content> is the semantic content, rough draft, or template the user wants to send from speaker="me". Preserve its intent and speech act. If it asks a question, the final reply must ask that question; do not answer it.',
-    '- <ai-guidance> is private editing guidance for you. It is not part of the conversation and is not addressed to you as a chat message.',
-    '- If <reply-content> conflicts with <ai-guidance>, preserve the reply content intent and use the guidance only for style or shaping.',
+    '- If the <instruction> conflicts with the style guidance, follow the instruction.',
   );
   return lines.join('\n');
 }
@@ -598,34 +583,6 @@ function escapeAttr(s) {
   return String(s).replace(/[&<>"]/g, (c) => ({
     '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;',
   }[c]));
-}
-
-function escapeXmlText(s) {
-  return String(s || '').replace(/[&<>]/g, (c) => ({
-    '&': '&amp;', '<': '&lt;', '>': '&gt;',
-  }[c]));
-}
-
-function selfAliases(me) {
-  const aliases = new Set(['me', 'you']);
-  if (me?.name) {
-    me.name
-      .split(',')
-      .map((s) => s.trim())
-      .filter(Boolean)
-      .forEach((name) => {
-        aliases.add(name.toLowerCase());
-        aliases.add(name.replace(/^@/, '').toLowerCase());
-      });
-  }
-  return aliases;
-}
-
-function messageSpeaker(author, aliases) {
-  const value = String(author || '').trim().toLowerCase();
-  if (!value || value === 'unknown') return 'unknown';
-  if (aliases.has(value) || aliases.has(value.replace(/^@/, ''))) return 'me';
-  return 'other';
 }
 
 // Render a timestamp: Slack's "<epoch_seconds>.<microseconds>" → "HH:MM" (today)
@@ -646,20 +603,15 @@ function formatTs(raw) {
   return `${d.toLocaleDateString([], { month: 'short', day: 'numeric' })} ${time}`;
 }
 
-function buildPrompt(thread, notes = {}, { mood, voice, me, host } = {}) {
+function buildPrompt(thread, instruction, { mood, voice, me, host } = {}) {
   const messages = thread.messages || [];
-  const replyContent = (notes.replyContent || '').trim();
-  const guidance = (notes.guidance || '').trim();
-  const aliases = selfAliases(me);
   // Timestamps are noisy and inconsistent; only include them when ordering
   // alone isn't enough context.
   const keepTs = messages.length > 15;
   const body = messages
-    .map((m, i) => {
+    .map((m) => {
       const ts = keepTs && m.ts ? ` @ ${formatTs(m.ts)}` : '';
-      const speaker = messageSpeaker(m.author, aliases);
-      const author = m.author || 'unknown';
-      return `<message n="${i + 1}" speaker="${speaker}" author="${escapeAttr(author)}"${ts ? ` time="${escapeAttr(ts.trim().replace(/^@ /, ''))}"` : ''}>\n${escapeXmlText(m.text || '')}\n</message>`;
+      return `${m.author || 'unknown'}${ts}\n${m.text || ''}`;
     })
     .join('\n---\n');
 
@@ -686,13 +638,9 @@ function buildPrompt(thread, notes = {}, { mood, voice, me, host } = {}) {
       : `chat="${escapeAttr(thread.label || 'chat')}"`;
 
   const parts = [`<conversation ${where}>\n${body}\n</conversation>`];
-  parts.push(
-    `<speaker-map>\nspeaker="me" means the user/Nuntius owner. speaker="other" means someone else in the chat. speaker="unknown" means attribution was not reliable, so infer cautiously from surrounding turns.\n</speaker-map>`
-  );
   if (styleLines.length > 0) parts.push(`<style>\n${styleLines.join('\n')}\n</style>`);
   if (voiceBlock) parts.push(voiceBlock);
-  if (replyContent) parts.push(`<reply-content>\n${escapeXmlText(replyContent)}\n</reply-content>`);
-  if (guidance) parts.push(`<ai-guidance>\n${escapeXmlText(guidance)}\n</ai-guidance>`);
+  if (instruction) parts.push(`<instruction>${instruction}</instruction>`);
 
   return { system: buildSystemPrompt(me, host), user: parts.join('\n\n') };
 }
