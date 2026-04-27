@@ -112,7 +112,7 @@ If you use a non-default host/port, update the rule in `rules/ollama.json`.
 - `content-slack.js` — isolated-world content script for Slack. DOM scrape, voice-sample harvest from search, paste into Slack's Quill composer.
 - `content-teams.js` — isolated-world content script for Teams. DOM scrape, paste into CKEditor 5.
 - `content-instagram.js` — isolated-world content script for Instagram web DMs. DOM scrape + paste into Instagram's contenteditable composer.
-- `content-facebook.js` — isolated-world content script for Facebook Messenger. Scrapes message `article`s from the live conversation log and pastes into the Messenger composer.
+- `content-facebook.js` — isolated-world content script for Facebook Messenger. Scrapes Messenger's live conversation log, including accessibility transcript fallbacks, and pastes into the Messenger composer.
 - `content-main.js` — MAIN-world script shared across both hosts. Patches `window.matchMedia` so "Sync with OS" / "Follow system" theme honors nuntius's toggle.
 - `sidepanel/` — unified UI. Detects current host, adapts labels and affordances, shows host badge in header.
 - `rules/ollama.json` — `declarativeNetRequest` rule that strips `Origin` on Ollama requests.

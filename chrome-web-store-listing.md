@@ -14,19 +14,19 @@
 
 ## Short description
 
-Draft Slack and Microsoft Teams replies with Claude or a local Ollama model, right inside each app.
+Draft replies in Slack, Teams, Instagram DMs, and Messenger with Claude, Gemini CLI, Codex CLI, or Ollama.
 
 ## Detailed description
 
-`nuntius` is a side-panel assistant for Slack and Microsoft Teams that helps you draft replies without leaving the conversation you are already in.
+`nuntius` is a side-panel assistant for Slack, Microsoft Teams, Instagram DMs, and Facebook Messenger that helps you draft replies without leaving the conversation you are already in.
 
-Open a thread, channel, DM, or Teams chat, then generate a suggested reply directly from the page context. The extension reads the recent conversation, lets you choose a tone, and inserts a draft into the correct composer so you can review and send it yourself.
+Open a Slack thread, channel, or DM; a Teams chat; an Instagram DM; or a Messenger conversation, then generate a suggested reply directly from the page context. The extension reads the recent conversation, lets you choose a tone, and inserts a draft into the correct composer so you can review and send it yourself.
 
 Why teams use nuntius:
 
-- Works inside Slack and Microsoft Teams in one extension.
+- Works inside Slack, Microsoft Teams, Instagram DMs, and Facebook Messenger in one extension.
 - Drafts replies in context instead of making you copy and paste chats into another tool.
-- Supports Claude through a local native host setup.
+- Supports Claude, Gemini CLI, and ChatGPT / Codex CLI through a local native host setup.
 - Supports local Ollama models for private, on-device workflows.
 - Lets you steer tone with moods like professional, direct, empathetic, playful, technical, or one-liner.
 - Saves personal voice samples and optional profile details to better match your writing style.
@@ -42,7 +42,7 @@ Typical use cases:
 
 How it works:
 
-1. Open Slack or Microsoft Teams in Chrome.
+1. Open Slack, Microsoft Teams, Instagram DMs, or Facebook Messenger in Chrome.
 2. Open the nuntius side panel.
 3. Choose your provider, tone, and optional instruction.
 4. Generate a draft.
@@ -50,8 +50,8 @@ How it works:
 
 Important notes:
 
-- `nuntius` only works on Slack and Microsoft Teams web apps.
-- Claude support requires a one-time local native host installation.
+- `nuntius` only works on the supported Slack, Microsoft Teams, Instagram DM, and Facebook Messenger web apps.
+- Claude, Gemini CLI, and ChatGPT / Codex CLI support require a one-time local native host installation.
 - Ollama support requires a local Ollama instance and installed model.
 - You stay in control of the final message. Drafts are inserted for review, not auto-sent.
 
@@ -61,9 +61,13 @@ Important notes:
 - Microsoft Teams AI assistant
 - Slack reply generator
 - Teams reply generator
+- Instagram DM reply generator
+- Messenger reply generator
 - Slack writing assistant
 - Teams writing assistant
 - Claude Chrome extension
+- Gemini CLI Chrome extension
+- Codex CLI Chrome extension
 - Ollama Chrome extension
 - AI message drafting
 - workplace communication assistant
@@ -75,13 +79,13 @@ Important notes:
 
 ### Promotional sentence
 
-Write faster in Slack and Teams without leaving the conversation.
+Write faster in Slack, Teams, Instagram DMs, and Messenger without leaving the conversation.
 
 ### Alternative hooks
 
-- Draft better replies in Slack and Teams with Claude or Ollama.
+- Draft better replies in Slack, Teams, Instagram, and Messenger with Claude, Gemini CLI, Codex CLI, or Ollama.
 - Your AI side panel for workplace messaging.
-- Turn long threads into clear replies in a click.
+- Turn long chats into clear replies in a click.
 - Stay in flow while drafting polished responses.
 
 ## Permission explanations
@@ -92,11 +96,11 @@ Used to save your settings, selected provider, voice samples, theme, and recent 
 
 ### `sidePanel`
 
-Used to show the nuntius interface in Chrome's side panel beside Slack and Teams.
+Used to show the nuntius interface in Chrome's side panel beside supported chat apps.
 
 ### `tabs` and `activeTab`
 
-Used to detect whether the current tab is Slack or Teams and to target the correct tab when inserting a draft.
+Used to detect whether the current tab is a supported chat app and to target the correct tab when inserting a draft.
 
 ### `scripting`
 
@@ -104,7 +108,7 @@ Used to coordinate content scripts that read conversation context and place draf
 
 ### `nativeMessaging`
 
-Used only for optional Claude CLI support through a local native host installed by the user.
+Used only for optional Claude, Gemini CLI, and ChatGPT / Codex CLI support through a local native host installed by the user.
 
 ### `declarativeNetRequest`
 
@@ -117,6 +121,8 @@ Used only on:
 - `https://app.slack.com/*`
 - `https://teams.microsoft.com/*`
 - `https://teams.cloud.microsoft/*`
+- `https://www.instagram.com/direct/*`
+- `https://www.facebook.com/messages/*`
 - `http://localhost/*`
 - `http://127.0.0.1/*`
 
@@ -124,9 +130,9 @@ These permissions are required to read message context from supported chat apps 
 
 ## Privacy disclosure draft
 
-`nuntius` runs inside Slack and Microsoft Teams pages to collect the visible conversation context needed to draft a reply. Settings and saved voice samples are stored locally in Chrome storage on the user's machine.
+`nuntius` runs inside supported Slack, Microsoft Teams, Instagram DM, and Facebook Messenger pages to collect the visible conversation context needed to draft a reply. Settings and saved voice samples are stored locally in Chrome storage on the user's machine.
 
-If the user selects Ollama, prompts are sent only to the user's configured local Ollama server. If the user selects Claude, prompts are sent through the user's locally installed Claude CLI via a native host. The extension does not auto-send messages; it inserts a draft for the user to review before sending.
+If the user selects Ollama, prompts are sent only to the user's configured local Ollama server. If the user selects Claude, Gemini CLI, or ChatGPT / Codex CLI, prompts are sent through the user's locally installed CLI via a native host. The extension does not auto-send messages; it inserts a draft for the user to review before sending.
 
 ## Submission checklist
 
